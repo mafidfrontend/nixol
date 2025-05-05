@@ -24,11 +24,11 @@ export default function LoginPage() {
                     router.push("/dashboard/oshpaz");
                     break;
                 default:
-                    alert("Noto'g'ri rol tanlandi");
+                    alert("Noto&apos;g&apos;ri rol tanlandi");
                     break;
             }
         } else {
-            alert("Login yoki parol noto'g'ri!");
+            alert("Login yoki parol noto&apos;g&apos;ri!");
         }
     };
 

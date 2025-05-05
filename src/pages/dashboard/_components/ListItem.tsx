@@ -11,7 +11,7 @@ export const ListItem = ({
             onClick={onDelete}
             className="text-red-600 hover:text-red-700 transition"
         >
-            O'chirish
+            O&apos;chirish
         </button>
     </li>
 );

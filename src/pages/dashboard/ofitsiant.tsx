@@ -90,7 +90,7 @@ export default function OfitsiantPage() {
                                     onClick={() => handleAddItem(item)}
                                     className="mt-2 bg-green-500 text-white px-4 py-2 rounded"
                                 >
-                                    Qo'shish
+                                    Qo&apos;shish
                                 </button>
                             </div>
                         ))}
@@ -101,7 +101,7 @@ export default function OfitsiantPage() {
                     <h2 className="text-xl font-semibold">Buyurtmalar</h2>
                     <div className="border p-4 rounded">
                         {orderItems.length === 0 ? (
-                            <p>Hech qanday buyurtma qo'shilmagan.</p>
+                            <p>Hech qanday buyurtma qo&apos;shilmagan.</p>
                         ) : (
                             <ul>
                                 {orderItems.map((item, index) => (
@@ -116,7 +116,7 @@ export default function OfitsiantPage() {
                                             }
                                             className="text-red-500"
                                         >
-                                            O'chirish
+                                            O&apos;chirish
                                         </button>
                                     </li>
                                 ))}

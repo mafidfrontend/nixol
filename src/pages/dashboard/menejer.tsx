@@ -150,7 +150,7 @@ export default function MenejerPage() {
                                 {menuItems.map((item) => (
                                     <ListItem
                                         key={item.id}
-                                        name={`${item.name} (${item.price} so'm)`}
+                                        name={`${item.name} (${item.price} so&apos;m)`}
                                         onDelete={() => removeMenuItem(item.id)}
                                     />
                                 ))}
