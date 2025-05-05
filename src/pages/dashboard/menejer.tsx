@@ -1,10 +1,10 @@
 "use client";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Button } from "./_components/Button";
-import { Input } from "./_components/Input";
-import { ListItem } from "./_components/ListItem";
-import { Select } from "./_components/Select";
+import { Button } from "../../_components/Button";
+import { Input } from "../../_components/Input";
+import { ListItem } from "../../_components/ListItem";
+import { Select } from "../../_components/Select";
 import { useManagerStore } from "@/store/useManagerStore";
 import Head from "next/head";
 
