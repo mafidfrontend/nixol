@@ -44,13 +44,13 @@ export default function OfitsiantPage() {
         }
 
         const items = orderItems[selectedTable] || [];
+
         if (items.length === 0) {
             toast.error("Buyurtma bo‘sh. Hech nima tanlanmagan.");
             return;
         }
 
-        toast.success(`Buyurtma stol #${selectedTable} ga yuborildi!`);
-        submitOrder();
+        submitOrder(); // toast submitOrder ichida
     };
 
     return (

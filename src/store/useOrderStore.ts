@@ -1,98 +1,132 @@
+import { toast } from "sonner";
 import { create } from "zustand";
 
 interface MenuItem {
     id: number;
     name: string;
     price: number;
-}
-
-interface OrderItem extends MenuItem {
     quantity: number;
 }
 
 interface Order {
+    id: number;
     table: number;
-    items: OrderItem[];
+    items: MenuItem[];
     createdAt: string;
+    status: "pending" | "progress" | "done";
 }
 
 interface OrderState {
     selectedTable: number | null;
-    orderItems: Record<number, OrderItem[]>; // table -> items
+    orderItems: Record<number, MenuItem[]>;
     orders: Order[];
     setTable: (table: number) => void;
-    addItem: (item: MenuItem) => void;
+    addItem: (item: Omit<MenuItem, "quantity">) => void;
     removeItem: (id: number) => void;
     submitOrder: () => void;
+    updateOrderStatus: (
+        orderId: number,
+        newStatus: "pending" | "progress" | "done"
+    ) => void;
 }
 
 export const useOrderStore = create<OrderState>((set, get) => ({
     selectedTable: null,
     orderItems: {},
     orders: [],
+
     setTable: (table) => set({ selectedTable: table }),
+
     addItem: (item) => {
         const { selectedTable, orderItems } = get();
-        if (!selectedTable) return;
+        if (selectedTable === null) return;
 
-        const tableOrders = orderItems[selectedTable] || [];
-        const existingItem = tableOrders.find((i) => i.id === item.id);
+        const currentItems = orderItems[selectedTable] || [];
+        const existing = currentItems.find((i) => i.id === item.id);
 
-        let updatedTableOrders;
-        if (existingItem) {
-            updatedTableOrders = tableOrders.map((i) =>
+        let updatedItems: MenuItem[];
+        if (existing) {
+            updatedItems = currentItems.map((i) =>
                 i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
             );
         } else {
-            updatedTableOrders = [...tableOrders, { ...item, quantity: 1 }];
+            updatedItems = [...currentItems, { ...item, quantity: 1 }];
         }
 
         set({
             orderItems: {
                 ...orderItems,
-                [selectedTable]: updatedTableOrders,
+                [selectedTable]: updatedItems,
             },
         });
     },
+
     removeItem: (id) => {
         const { selectedTable, orderItems } = get();
-        if (!selectedTable) return;
+        if (selectedTable === null) return;
 
-        const tableOrders = orderItems[selectedTable] || [];
-        const updatedTableOrders = tableOrders
-            .map((item) =>
-                item.id === id && item.quantity > 1
-                    ? { ...item, quantity: item.quantity - 1 }
-                    : item
-            )
-            .filter((item) => item.id !== id || item.quantity > 0);
+        const updatedItems = (orderItems[selectedTable] || []).filter(
+            (item) => item.id !== id
+        );
 
         set({
             orderItems: {
                 ...orderItems,
-                [selectedTable]: updatedTableOrders,
+                [selectedTable]: updatedItems,
             },
         });
     },
+
     submitOrder: () => {
         const { selectedTable, orderItems, orders } = get();
-        if (!selectedTable) return;
 
-        const items = orderItems[selectedTable];
-        if (!items || items.length === 0) return;
+        if (selectedTable === null) return;
+
+        const items = orderItems[selectedTable] || [];
+
+        if (!selectedTable || items.length === 0) return;
 
         const newOrder: Order = {
+            id: Date.now(),
             table: selectedTable,
             items,
             createdAt: new Date().toISOString(),
+            status: "pending",
         };
-
-        const newOrderItems = { ...orderItems };
-        delete newOrderItems[selectedTable];
 
         set({
             orders: [newOrder, ...orders],
-            orderItems: newOrderItems,
+            orderItems: {
+                ...orderItems,
+                [selectedTable]: [],
+            },
+        });
+
+        toast.success(
+            `Buyurtma #${newOrder.id} yuborildi. Stol #${selectedTable}. Holati: tayyorlanmoqda.`
+        );
+        console.log([newOrder, ...orders])
+    },
+
+    updateOrderStatus: (orderId, newStatus) => {
+        set((state) => {
+            const updatedOrders = state.orders.map((order) =>
+                order.id === orderId ? { ...order, status: newStatus } : order
+            );
+
+            switch (newStatus) {
+                case "progress":
+                    toast.info("Buyurtma tayyorlanmoqda...");
+                    break;
+                case "done":
+                    toast.success("Buyurtma tayyor bo‘ldi!");
+                    break;
+                case "pending":
+                    toast("Buyurtma kutish holatida.");
+                    break;
+            }
+
+            return { orders: updatedOrders };
         });
     },
 }));

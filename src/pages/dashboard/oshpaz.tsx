@@ -1,33 +1,54 @@
 import Head from "next/head";
-import { useState } from "react";
-
-const buyurtmalar = [
-    { id: 1, table: 5, status: "pending", items: ["Pizza", "Coca Cola"] },
-    { id: 2, table: 3, status: "progress", items: ["Spaghetti", "Water"] },
-    { id: 3, table: 8, status: "done", items: ["Burger", "Fanta"] },
-];
+import { useEffect, useRef } from "react";
+import { useOrderStore } from "@/store/useOrderStore";
+import { toast } from "sonner";
 
 export default function OshpazPage() {
-    const [orders, setOrders] = useState(buyurtmalar);
-    const [pageTitle] = useState("Chief Dashboard");
+    const orders = useOrderStore((state) => state.orders);
+    const updateOrderStatus = useOrderStore((state) => state.updateOrderStatus);
 
-    const changeStatus = (orderId: number, newStatus: string) => {
-        setOrders((prevOrders) =>
-            prevOrders.map((order) =>
-                order.id === orderId ? { ...order, status: newStatus } : order
-            )
-        );
+    console.log(orders)
+
+    const prevPendingCount = useRef(0);
+
+    useEffect(() => {
+        const currentPending = orders.filter(
+            (order) => order.status === "pending"
+        ).length;
+
+        if (currentPending > prevPendingCount.current) {
+            toast.info("Yangi buyurtma tushdi!");
+        }
+
+        prevPendingCount.current = currentPending;
+    }, [orders]);
+
+    const handleAccept = (orderId: number) => {
+        updateOrderStatus(orderId, "progress");
+        toast.success("Buyurtma tayyorlanmoqda");
+    };
+
+    const handleComplete = (orderId: number) => {
+        updateOrderStatus(orderId, "done");
+        toast.success("Buyurtma tayyor bo‘ldi");
     };
 
     return (
         <>
             <Head>
-                <title>{pageTitle}</title>
+                <title>Chief Dashboard</title>
                 <meta name="description" content="Restoran oshpaz paneli" />
             </Head>
             <div className="p-8">
                 <h1 className="text-2xl font-bold">Oshpaz Dashboard</h1>
                 <div className="mt-6">
+                    {orders.filter((order) => order.status !== "done")
+                        .length === 0 && (
+                        <p className="text-gray-500">
+                            Hozircha tayyorlanadigan buyurtmalar yo‘q.
+                        </p>
+                    )}
+
                     {orders
                         .filter((order) => order.status !== "done")
                         .map((order) => (
@@ -39,18 +60,17 @@ export default function OshpazPage() {
                                     Stol #{order.table}
                                 </h3>
                                 <ul className="mb-2">
-                                    {order.items.map((item, index) => (
-                                        <li key={index}>{item}</li>
+                                    {order.items.map((item, j) => (
+                                        <li key={j}>
+                                            {item.name} × {item.quantity}
+                                        </li>
                                     ))}
                                 </ul>
                                 <div className="flex gap-4">
                                     {order.status === "pending" && (
                                         <button
                                             onClick={() =>
-                                                changeStatus(
-                                                    order.id,
-                                                    "progress"
-                                                )
+                                                handleAccept(order.id)
                                             }
                                             className="bg-blue-500 text-white px-4 py-2 rounded"
                                         >
@@ -60,7 +80,7 @@ export default function OshpazPage() {
                                     {order.status === "progress" && (
                                         <button
                                             onClick={() =>
-                                                changeStatus(order.id, "done")
+                                                handleComplete(order.id)
                                             }
                                             className="bg-green-500 text-white px-4 py-2 rounded"
                                         >
