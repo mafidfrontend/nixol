@@ -1,9 +1,10 @@
 "use client";
+
 import { useState } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import { toast } from "sonner";
-import { useOrderStore } from "@/store/stor";
+import { useOrderStore } from "@/store/useOrderStore";
 
 const menuItems = [
     { id: 1, name: "Pizza", price: 15 },
@@ -17,8 +18,9 @@ export default function OfitsiantPage() {
     const [pageTitle] = useState("Waiter Dashboard");
     const router = useRouter();
 
-    const orderItems = useOrderStore((state) => state.orderItems);
     const selectedTable = useOrderStore((state) => state.selectedTable);
+    const orderItems = useOrderStore((state) => state.orderItems);
+    const orders = useOrderStore((state) => state.orders);
     const addItem = useOrderStore((state) => state.addItem);
     const removeItem = useOrderStore((state) => state.removeItem);
     const setTable = useOrderStore((state) => state.setTable);
@@ -35,7 +37,7 @@ export default function OfitsiantPage() {
 
     const handleRemoveItem = (id: number) => {
         removeItem(id);
-        toast.warning(`Item removed from your order.`);
+        toast.warning(`Buyurtma element o‘chirildi`);
     };
 
     const handleSubmitOrder = () => {
@@ -44,11 +46,14 @@ export default function OfitsiantPage() {
             return;
         }
 
-        toast.success(`Buyurtma stol #${selectedTable} ga tayyorlanishga yuborildi!`);
+        const items = orderItems[selectedTable] || [];
+        if (items.length === 0) {
+            toast.error("Buyurtma bo‘sh. Hech nima tanlanmagan.");
+            return;
+        }
 
+        toast.success(`Buyurtma stol #${selectedTable} ga yuborildi!`);
         submitOrder();
-
-        router.push("/dashboard");
     };
 
     return (
@@ -60,6 +65,13 @@ export default function OfitsiantPage() {
             <div className="p-8">
                 <h1 className="text-2xl font-bold mb-4">Ofitsiant Dashboard</h1>
 
+                {selectedTable && (
+                    <div className="mb-4 text-lg font-medium text-green-700">
+                        📌 Hozirda buyurtma qabul qilinmoqda:{" "}
+                        <b>Stol #{selectedTable}</b>
+                    </div>
+                )}
+
                 <div className="mb-6">
                     <h2 className="text-xl font-semibold">
                         Stol raqamini tanlang
@@ -68,10 +80,10 @@ export default function OfitsiantPage() {
                         <button
                             key={table}
                             onClick={() => setTable(table)}
-                            className={`mr-2 mb-2 p-2 border ${
+                            className={`mr-2 mb-2 p-2 border rounded ${
                                 selectedTable === table
                                     ? "bg-blue-500 text-white"
-                                    : ""
+                                    : "bg-white"
                             }`}
                         >
                             Stol #{table}
@@ -100,16 +112,17 @@ export default function OfitsiantPage() {
                 <div className="mb-6">
                     <h2 className="text-xl font-semibold">Buyurtmalar</h2>
                     <div className="border p-4 rounded">
-                        {orderItems.length === 0 ? (
-                            <p>Hech qanday buyurtma qo&apos;shilmagan.</p>
-                        ) : (
+                        {selectedTable &&
+                        orderItems[selectedTable]?.length > 0 ? (
                             <ul>
-                                {orderItems.map((item, index) => (
+                                {orderItems[selectedTable].map((item) => (
                                     <li
-                                        key={index}
-                                        className="flex justify-between"
+                                        key={item.id}
+                                        className="flex justify-between items-center mb-1"
                                     >
-                                        <span>{item.name}</span>
+                                        <span>
+                                            {item.name} × {item.quantity}
+                                        </span>
                                         <button
                                             onClick={() =>
                                                 handleRemoveItem(item.id)
@@ -121,17 +134,47 @@ export default function OfitsiantPage() {
                                     </li>
                                 ))}
                             </ul>
+                        ) : (
+                            <p>Hech qanday buyurtma qo&apos;shilmagan.</p>
                         )}
                     </div>
                 </div>
 
-                <div>
+                <div className="mb-6">
                     <button
                         onClick={handleSubmitOrder}
                         className="bg-blue-500 text-white px-6 py-2 rounded"
                     >
                         Buyurtmani yuborish
                     </button>
+                </div>
+
+                <div className="mt-10">
+                    <h2 className="text-xl font-bold mb-2">Buyurtma Tarixi</h2>
+                    {orders.length === 0 ? (
+                        <p>Hozircha buyurtmalar mavjud emas.</p>
+                    ) : (
+                        <ul className="space-y-2">
+                            {orders.map((order, i) => (
+                                <li key={i} className="border p-3 rounded">
+                                    <p className="font-semibold mb-1">
+                                        Stol #{order.table} |{" "}
+                                        {new Date(
+                                            order.createdAt
+                                        ).toLocaleString()}
+                                    </p>
+                                    <ul className="pl-4 list-disc">
+                                        {order.items.map((item, j) => (
+                                            <li key={j}>
+                                                {item.name} × {item.quantity} —{" "}
+                                                {item.price} USD
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
                 </div>
             </div>
         </>

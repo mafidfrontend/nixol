@@ -21,45 +21,57 @@ export default function MenejerPage() {
         removeTable,
     } = useManagerStore();
 
-    const [newCategory, setNewCategory] = useState("");
     const [pageTitle] = useState("Manager Dashboard");
+    const [newCategory, setNewCategory] = useState("");
+    const [newTable, setNewTable] = useState(0);
     const [newMenuItem, setNewMenuItem] = useState({
         name: "",
         categoryId: 0,
         price: 0,
     });
-    const [newTable, setNewTable] = useState(0);
 
     const handleAddCategory = () => {
         const trimmed = newCategory.trim();
-        if (!trimmed) return;
-
+        if (!trimmed) return toast.error("Kategoriya nomini kiriting");
         const exists = categories.find(
             (c) => c.name.toLowerCase() === trimmed.toLowerCase()
         );
-
-        if (exists) {
-            toast.error(`"${trimmed}" nomli kategoriya allaqachon mavjud`);
-        } else {
-            addCategory({ id: Date.now(), name: trimmed });
-            toast.success(`"${trimmed}" kategoriyasi qo‘shildi`);
-            setNewCategory("");
-        }
+        if (exists) return toast.error(`"${trimmed}" allaqachon mavjud`);
+        addCategory({ id: Date.now(), name: trimmed });
+        toast.success(`"${trimmed}" kategoriyasi qo‘shildi`);
+        setNewCategory("");
     };
 
     const handleAddMenuItem = () => {
         const { name, categoryId, price } = newMenuItem;
-        if (name.trim() && categoryId > 0 && price > 0) {
-            addMenuItem({ ...newMenuItem, id: Date.now() });
-            setNewMenuItem({ name: "", categoryId: 0, price: 0 });
+        if (!name.trim() || categoryId <= 0 || price <= 0) {
+            return toast.error("Barcha maydonlar to‘g‘ri to‘ldirilishi kerak");
         }
+        addMenuItem({ ...newMenuItem, id: Date.now() });
+        toast.success(`"${name}" menyu itemi qo‘shildi`);
+        setNewMenuItem({ name: "", categoryId: 0, price: 0 });
     };
 
     const handleAddTable = () => {
-        if (newTable > 0) {
-            addTable({ id: Date.now(), number: newTable });
-            setNewTable(0);
-        }
+        if (newTable <= 0) return toast.error("Stol raqami noto‘g‘ri");
+        addTable({ id: Date.now(), number: newTable });
+        toast.success(`Stol #${newTable} qo‘shildi`);
+        setNewTable(0);
+    };
+
+    const handleRemoveCategory = (id: number, name: string) => {
+        removeCategory(id);
+        toast.success(`"${name}" o‘chirildi`);
+    };
+
+    const handleRemoveMenuItem = (id: number, name: string) => {
+        removeMenuItem(id);
+        toast.success(`"${name}" menyudan o‘chirildi`);
+    };
+
+    const handleRemoveTable = (id: number, number: number) => {
+        removeTable(id);
+        toast.success(`Stol #${number} o‘chirildi`);
     };
 
     return (
@@ -83,7 +95,7 @@ export default function MenejerPage() {
                                 type="text"
                                 value={newCategory}
                                 onChange={(e) => setNewCategory(e.target.value)}
-                                placeholder="Kategoriya nomini kiriting"
+                                placeholder="Kategoriya nomi"
                             />
                             <Button onClick={handleAddCategory}>
                                 Qo‘shish
@@ -97,7 +109,10 @@ export default function MenejerPage() {
                                         key={category.id}
                                         name={category.name}
                                         onDelete={() =>
-                                            removeCategory(category.id)
+                                            handleRemoveCategory(
+                                                category.id,
+                                                category.name
+                                            )
                                         }
                                     />
                                 ))}
@@ -121,7 +136,11 @@ export default function MenejerPage() {
                             />
                             <Input
                                 type="number"
-                                value={newMenuItem.price}
+                                value={
+                                    newMenuItem.price <= 0
+                                        ? ""
+                                        : newMenuItem.price
+                                }
                                 onChange={(e) =>
                                     setNewMenuItem({
                                         ...newMenuItem,
@@ -150,8 +169,13 @@ export default function MenejerPage() {
                                 {menuItems.map((item) => (
                                     <ListItem
                                         key={item.id}
-                                        name={`${item.name} (${item.price} so&apos;m)`}
-                                        onDelete={() => removeMenuItem(item.id)}
+                                        name={`${item.name} (${item.price} so'm)`}
+                                        onDelete={() =>
+                                            handleRemoveMenuItem(
+                                                item.id,
+                                                item.name
+                                            )
+                                        }
                                     />
                                 ))}
                             </ul>
@@ -163,7 +187,7 @@ export default function MenejerPage() {
                             </h2>
                             <Input
                                 type="number"
-                                value={newTable}
+                                value={newTable <= 0 ? "" : newTable}
                                 onChange={(e) =>
                                     setNewTable(parseInt(e.target.value))
                                 }
@@ -178,7 +202,12 @@ export default function MenejerPage() {
                                     <ListItem
                                         key={table.id}
                                         name={`Stol #${table.number}`}
-                                        onDelete={() => removeTable(table.id)}
+                                        onDelete={() =>
+                                            handleRemoveTable(
+                                                table.id,
+                                                table.number
+                                            )
+                                        }
                                     />
                                 ))}
                             </ul>

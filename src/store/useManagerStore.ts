@@ -2,7 +2,9 @@ import { create } from "zustand";
 import { ManagerState } from "@/types/types";
 
 export const useManagerStore = create<ManagerState>((set) => ({
-    categories: [],
+    categories: [
+        { name: "Ichimliklar", id: 1 },
+    ],
     menuItems: [],
     tables: [],
 
