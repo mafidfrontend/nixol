@@ -1,7 +1,5 @@
 "use client";
-
 import { useState } from "react";
-import { useRouter } from "next/router";
 import Head from "next/head";
 import { toast } from "sonner";
 import { useOrderStore } from "@/store/useOrderStore";
@@ -16,7 +14,6 @@ const menuItems = [
 
 export default function OfitsiantPage() {
     const [pageTitle] = useState("Waiter Dashboard");
-    const router = useRouter();
 
     const selectedTable = useOrderStore((state) => state.selectedTable);
     const orderItems = useOrderStore((state) => state.orderItems);
