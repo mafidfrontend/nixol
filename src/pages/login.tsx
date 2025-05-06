@@ -8,8 +8,10 @@ export default function LoginPage() {
     const router = useRouter();
 
     const handleLogin = (e: React.FormEvent) => {
+
         e.preventDefault();
 
+        
         const users = [
             {
                 email: "of@nt.uz",
