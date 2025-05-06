@@ -5,30 +5,30 @@ import { useRouter } from "next/router";
 export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [role, setRole] = useState("");
     const router = useRouter();
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (email === "admin@nt.uz" && password === "pass123") {
-            localStorage.setItem("role", role);
-            switch (role) {
-                case "ofitsiant":
-                    router.push("/dashboard/ofitsiant");
-                    break;
-                case "menejer":
-                    router.push("/dashboard/menejer");
-                    break;
-                case "oshpaz":
-                    router.push("/dashboard/oshpaz");
-                    break;
-                default:
-                    alert("Noto&apos;g&apos;ri rol tanlandi");
-                    break;
-            }
+        const users = [
+            {
+                email: "of@nt.uz",
+                password: "pass123",
+                role: "ofitsiant",
+            },
+            { email: "men@nt.uz", password: "pass123", role: "menejer" },
+            { email: "osh@nt.uz", password: "pass123", role: "oshpaz" },
+        ];
+
+        const foundUser = users.find(
+            (user) => user.email === email && user.password === password
+        );
+
+        if (foundUser) {
+            localStorage.setItem("role", foundUser.role);
+            router.push(`/dashboard/${foundUser.role}`);
         } else {
-            alert("Login yoki parol noto&apos;g&apos;ri!");
+            alert("Email yoki parol noto‘g‘ri!");
         }
     };
 
@@ -64,23 +64,6 @@ export default function LoginPage() {
                         className="w-full p-2 border rounded"
                         required
                     />
-                </div>
-                <div>
-                    <label htmlFor="role" className="block font-semibold">
-                        Rol tanlang
-                    </label>
-                    <select
-                        id="role"
-                        value={role}
-                        onChange={(e) => setRole(e.target.value)}
-                        className="w-full p-2 border rounded"
-                        required
-                    >
-                        <option value="">Rolni tanlang</option>
-                        <option value="ofitsiant">Ofitsiant</option>
-                        <option value="menejer">Menejer</option>
-                        <option value="oshpaz">Oshpaz</option>
-                    </select>
                 </div>
                 <div>
                     <button
