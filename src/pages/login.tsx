@@ -30,7 +30,7 @@ export default function LoginPage() {
                 (user: {
                     id: number;
                     name: string;
-                    role: string;
+                    position: string;
                     password: string;
                     email: string;
                 }) => user.email === email && user.password === password
