@@ -4,11 +4,10 @@ import { useOrderStore } from "@/store/useOrderStore";
 import { toast } from "sonner";
 
 export default function OshpazPage() {
-    const orderItems = useOrderStore((state) => state.orderItems);
     const orders = useOrderStore((state) => state.orders);
     const updateOrderStatus = useOrderStore((state) => state.updateOrderStatus);
 
-    console.log(orders);
+    console.log(orders)
 
     const prevPendingCount = useRef(0);
 
@@ -22,7 +21,7 @@ export default function OshpazPage() {
         }
 
         prevPendingCount.current = currentPending;
-    }, [orders, orderItems]);
+    }, [orders]);
 
     const handleAccept = (orderId: number) => {
         updateOrderStatus(orderId, "progress");
