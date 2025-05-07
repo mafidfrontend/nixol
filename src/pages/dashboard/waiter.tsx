@@ -50,7 +50,7 @@ export default function OfitsiantPage() {
             return;
         }
 
-        submitOrder(); // toast submitOrder ichida
+        submitOrder();
     };
 
     return (

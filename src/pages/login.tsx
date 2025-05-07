@@ -1,36 +1,49 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/router";
+import { toast } from "sonner";
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
     const router = useRouter();
 
-    const handleLogin = (e: React.FormEvent) => {
-
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
+        setLoading(true);
 
-        
-        const users = [
-            {
-                email: "of@nt.uz",
-                password: "pass123",
-                role: "ofitsiant",
-            },
-            { email: "men@nt.uz", password: "pass123", role: "menejer" },
-            { email: "osh@nt.uz", password: "pass123", role: "oshpaz" },
-        ];
+        try {
+            const res = await fetch(
+                "https://fa3b4322-a35d-418d-81e3-857a6e53889e.mock.pstmn.io/workers"
+            );
 
-        const foundUser = users.find(
-            (user) => user.email === email && user.password === password
-        );
+            console.log("Status:", res.status);
 
-        if (foundUser) {
-            localStorage.setItem("role", foundUser.role);
-            router.push(`/dashboard/${foundUser.role}`);
-        } else {
-            alert("Email yoki parol noto‘g‘ri!");
+            if (!res.ok) {
+                throw new Error("Xodimlar ro‘yxatini olishda xatolik");
+            }
+
+            const data = await res.json();
+
+            const user = data.find(
+                (user: any) =>
+                    user.email === email && user.password === password
+            );
+
+            console.log("Topilgan foydalanuvchi:", user);
+
+            if (user && user.position) {
+                localStorage.setItem("role", user.position);
+                router.push(`/dashboard/${user.position.toLowerCase()}`);
+            } else {
+                toast("❌ Email yoki parol noto‘g‘ri yoki role mavjud emas!");
+            }
+        } catch (err) {
+            console.error(err);
+            toast("Server bilan bog‘lanishda xatolik yuz berdi!");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -39,15 +52,11 @@ export default function LoginPage() {
             <h1 className="text-2xl font-bold mb-4 text-center">
                 Tizimga Kirish
             </h1>
-
             <form onSubmit={handleLogin} className="space-y-4">
                 <div>
-                    <label htmlFor="email" className="block font-semibold">
-                        Email
-                    </label>
+                    <label className="block font-semibold">Email</label>
                     <input
                         type="email"
-                        id="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className="w-full p-2 border rounded"
@@ -55,26 +64,22 @@ export default function LoginPage() {
                     />
                 </div>
                 <div>
-                    <label htmlFor="password" className="block font-semibold">
-                        Parol
-                    </label>
+                    <label className="block font-semibold">Parol</label>
                     <input
                         type="password"
-                        id="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="w-full p-2 border rounded"
                         required
                     />
                 </div>
-                <div>
-                    <button
-                        type="submit"
-                        className="w-full bg-blue-500 text-white px-4 py-2 rounded"
-                    >
-                        Kirish
-                    </button>
-                </div>
+                <button
+                    type="submit"
+                    className="w-full bg-blue-600 text-white py-2 rounded"
+                    disabled={loading}
+                >
+                    {loading ? "Yuklanmoqda..." : "Kirish"}
+                </button>
             </form>
         </div>
     );

@@ -7,6 +7,7 @@ import { ListItem } from "../../_components/ListItem";
 import { Select } from "../../_components/Select";
 import { useManagerStore } from "@/store/useManagerStore";
 import Head from "next/head";
+import AddWorker from "./_components/AddWorker";
 
 export default function MenejerPage() {
     const {
@@ -85,6 +86,8 @@ export default function MenejerPage() {
                     <h1 className="text-4xl font-bold text-center mb-10">
                         Menejer Dashboard
                     </h1>
+
+                    <AddWorker />
 
                     <div className="space-y-12">
                         <div>
