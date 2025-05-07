@@ -120,9 +120,8 @@ export const useOrderStore = create<OrderState>()(
                     toast.success(
                         `Buyurtma #${newOrder.id} yuborildi. Stol #${selectedTable}. Holati: ${newOrder.status}.`
                     );
-                } catch (error: any) {
+                } catch (error) {
                     console.error(error);
-                    toast.error(error.message || "Xatolik yuz berdi.");
                 }
             },
 

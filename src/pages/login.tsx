@@ -27,8 +27,13 @@ export default function LoginPage() {
             const data = await res.json();
 
             const user = data.find(
-                (user: any) =>
-                    user.email === email && user.password === password
+                (user: {
+                    id: number;
+                    name: string;
+                    role: string;
+                    password: string;
+                    email: string;
+                }) => user.email === email && user.password === password
             );
 
             console.log("Topilgan foydalanuvchi:", user);

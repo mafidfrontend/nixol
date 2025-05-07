@@ -1,27 +1,25 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Head from "next/head";
 import { toast } from "sonner";
 import { useOrderStore } from "@/store/useOrderStore";
-
-const menuItems = [
-    { id: 1, name: "Pizza", price: 15 },
-    { id: 2, name: "Burger", price: 10 },
-    { id: 3, name: "Spaghetti", price: 12 },
-    { id: 4, name: "Coca Cola", price: 3 },
-    { id: 5, name: "Fanta", price: 3 },
-];
+import { MenuItem } from "@/types/types";
+import dynamic from "next/dynamic";
 
 export default function OfitsiantPage() {
+    const BuyurtmaYuborish = dynamic(
+        () => import("./_components/BuyurtmaYuborish"),
+        { ssr: false }
+    );
     const [pageTitle] = useState("Waiter Dashboard");
-
     const selectedTable = useOrderStore((state) => state.selectedTable);
     const orderItems = useOrderStore((state) => state.orderItems);
-    const orders = useOrderStore((state) => state.orders);
+    const orders = useOrderStore((state) => state.orders ?? []);
     const addItem = useOrderStore((state) => state.addItem);
     const removeItem = useOrderStore((state) => state.removeItem);
     const setTable = useOrderStore((state) => state.setTable);
     const submitOrder = useOrderStore((state) => state.submitOrder);
+    const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
     const handleAddItem = (item: {
         id: number;
@@ -37,21 +35,60 @@ export default function OfitsiantPage() {
         toast.warning(`Buyurtma element o‘chirildi`);
     };
 
-    const handleSubmitOrder = () => {
+    const handleSubmitOrder = async () => {
         if (!selectedTable) {
             toast.error("Iltimos, stol raqamini tanlang!");
             return;
         }
 
         const items = orderItems[selectedTable] || [];
-
         if (items.length === 0) {
             toast.error("Buyurtma bo‘sh. Hech nima tanlanmagan.");
             return;
         }
 
-        submitOrder();
+        try {
+            const response = await fetch(
+                "https://fa3b4322-a35d-418d-81e3-857a6e53889e.mock.pstmn.io/orders",
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        table: selectedTable,
+                        items,
+                        createdAt: new Date().toISOString(),
+                        status: "pending",
+                    }),
+                }
+            );
+
+            const data = await response.json();
+
+            toast.success(`Buyurtma #${data.id} yuborildi!`);
+            submitOrder();
+        } catch (error) {
+            console.error("Buyurtma yuborishda xatolik:", error);
+            toast.error("Buyurtma yuborilmadi.");
+        }
     };
+
+    useEffect(() => {
+        const fetchMenu = async () => {
+            try {
+                const res = await fetch(
+                    "https://fa3b4322-a35d-418d-81e3-857a6e53889e.mock.pstmn.io/menu"
+                );
+                const data = await res.json();
+                setMenuItems(data);
+            } catch (err) {
+                console.error("Menyu yuklashda xatolik:", err);
+                toast.error("Menyu yuklanmadi");
+            } finally {
+            }
+        };
+
+        fetchMenu();
+    }, []);
 
     return (
         <>
@@ -110,7 +147,7 @@ export default function OfitsiantPage() {
                     <h2 className="text-xl font-semibold">Buyurtmalar</h2>
                     <div className="border p-4 rounded">
                         {selectedTable &&
-                        orderItems[selectedTable]?.length > 0 ? (
+                        orderItems[selectedTable].length > 0 ? (
                             <ul>
                                 {orderItems[selectedTable].map((item) => (
                                     <li
@@ -146,33 +183,7 @@ export default function OfitsiantPage() {
                     </button>
                 </div>
 
-                <div className="mt-10">
-                    <h2 className="text-xl font-bold mb-2">Buyurtma Tarixi</h2>
-                    {orders.length === 0 ? (
-                        <p>Hozircha buyurtmalar mavjud emas.</p>
-                    ) : (
-                        <ul className="space-y-2">
-                            {orders.map((order, i) => (
-                                <li key={i} className="border p-3 rounded">
-                                    <p className="font-semibold mb-1">
-                                        Stol #{order.table} |{" "}
-                                        {new Date(
-                                            order.createdAt
-                                        ).toLocaleString()}
-                                    </p>
-                                    <ul className="pl-4 list-disc">
-                                        {order.items.map((item, j) => (
-                                            <li key={j}>
-                                                {item.name} × {item.quantity} —{" "}
-                                                {item.price} USD
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </div>
+                <BuyurtmaYuborish orders={orders ?? []} />
             </div>
         </>
     );

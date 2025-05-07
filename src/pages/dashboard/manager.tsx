@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "../../_components/Button";
 import { Input } from "../../_components/Input";
@@ -30,6 +30,10 @@ export default function MenejerPage() {
         categoryId: 0,
         price: 0,
     });
+
+    const [dailyOrders, setDailyOrders] = useState<
+        { id: number; name: string; quantity: number }[]
+    >([]);
 
     const handleAddCategory = () => {
         const trimmed = newCategory.trim();
@@ -74,6 +78,38 @@ export default function MenejerPage() {
         removeTable(id);
         toast.success(`Stol #${number} o‘chirildi`);
     };
+
+    useEffect(() => {
+        const fetchOrders = async () => {
+            try {
+                const res = await fetch("https://mockapi.io/api/v1/orders");
+                const data = await res.json();
+
+                const itemMap: Record<string, number> = {};
+
+                data.forEach((order: { items: { name: string }[] }) => {
+                    order.items.forEach((item: { name: string }) => {
+                        itemMap[item.name] = (itemMap[item.name] || 0) + 1;
+                    });
+                });
+
+                const stats = Object.entries(itemMap).map(
+                    ([name, quantity], i) => ({
+                        id: i + 1,
+                        name,
+                        quantity,
+                    })
+                );
+
+                setDailyOrders(stats);
+            } catch (err) {
+                console.error("Buyurtmalarni olishda xatolik:", err);
+                toast.error("Buyurtmalarni olishda xatolik");
+            }
+        };
+
+        fetchOrders();
+    }, []);
 
     return (
         <>
@@ -214,6 +250,24 @@ export default function MenejerPage() {
                                     />
                                 ))}
                             </ul>
+                        </div>
+
+                        <div>
+                            <h2 className="text-2xl font-semibold mb-4">
+                                Kunlik buyurtmalar statistikasi
+                            </h2>
+                            {dailyOrders.length === 0 ? (
+                                <p>Bugun hali buyurtmalar yo‘q.</p>
+                            ) : (
+                                <ul className="list-disc pl-5 space-y-1">
+                                    {dailyOrders.map((item) => (
+                                        <li key={item.id}>
+                                            {item.name} — {item.quantity} marta
+                                            buyurtma qilingan
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
                         </div>
                     </div>
                 </div>
