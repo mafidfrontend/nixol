@@ -30,17 +30,18 @@ export default function LoginPage() {
                 (user: {
                     id: number;
                     name: string;
-                    position: string;
+                    role: string;
                     password: string;
                     email: string;
                 }) => user.email === email && user.password === password
             );
+            
 
             console.log("Topilgan foydalanuvchi:", user);
 
             if (user) {
-                localStorage.setItem("role", user.position);
-                router.push(`/dashboard/${user.position.toLowerCase()}`);
+                localStorage.setItem("role", user.role);
+                router.push(`/dashboard/${user.role.toLowerCase()}`);
             } else {
                 toast("❌ Email yoki parol noto‘g‘ri yoki role mavjud emas!");
             }
