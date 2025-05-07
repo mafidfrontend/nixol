@@ -38,7 +38,7 @@ export default function LoginPage() {
 
             console.log("Topilgan foydalanuvchi:", user);
 
-            if (user && user.position) {
+            if (user) {
                 localStorage.setItem("role", user.position);
                 router.push(`/dashboard/${user.position.toLowerCase()}`);
             } else {
